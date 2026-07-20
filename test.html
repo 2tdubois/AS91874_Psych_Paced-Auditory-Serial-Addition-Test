@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PASAT</title>
+    <style>
+        html {
+            height: 100%;
+            width: 100%;
+        }
+        body {
+            background-color: rgb(20, 20, 20);
+            color: white;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12pt;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+        #instructions {
+            max-width: 90%;
+        }
+
+        button {
+            border: 1px lightgray solid;
+            background-color: white;
+            padding: 10px 25px;
+            font-size: 12pt;
+            font-weight: bold;
+        }
+        button:hover {
+            border: 1px darkgray solid;
+            background-color: rgb(236, 236, 236);       
+        }
+        button:active {
+            border: 1px gray solid;
+            background-color: lightgray;     
+        }
+        button:disabled {
+            border: 1px gray solid;
+            background-color: rgb(177, 177, 177); 
+            color: rgb(138, 138, 138);  
+        }
+
+        #main-test {
+            height: 100%;
+            width: 100%;
+        }
+        #digit-grid {
+            margin: auto;
+            display: grid;
+            grid-template-columns: auto auto auto;
+            width: min-content;
+        }
+        .digit {
+            font-size: 48pt;
+            width: 150px;
+        }
+        #clear, #enter {
+            font-size: 24pt;
+        }
+    </style>
+</head>
+<body>
+    <div id="intro" style="display:block">
+        <h1>Welcome to the Paced Auditory Serial Addition Test (PASAT)</h1>
+        <br>
+        <button style="margin-top:25px;" id="intro-proceed">Proceed to headphone test</button>
+    </div>
+
+    <div id="headphones" style="display:none">
+        <h1>Test headphones</h1>
+        <p>Please adjust to a comfortable volume:</p>
+        <audio controls src="test.mp3"></audio>
+        <br>
+        <button style="margin-top:45px;" id="headphones-proceed" disabled=true>Proceed to instructions</button>
+    </div>
+
+    <div id="instructions" style="display:none">
+        <h1>Instructions</h1>
+        <p>You will be listening to 1-digit numbers. Under a 3-second time limit, you will be entering the sum of the number you hear and the number you heard before it. For example, if you heard the numbers 9, 7, 3, and 5, you would enter 16 after hearing 7, you would enter 10 after hearing 3, and you would enter 8 after hearing 5. You will input these numbers on the webpage, along with pressing a button to submit your answer. If you do not answer in time, the test will skip to the next number. Confirm first with the experimenter that you understand the task.</p>
+        <br>
+        <button style="margin-top:25px;" id="test-begin" disabled=true>Confirm, begin test</button>
+    </div>
+
+    <div id="main-test" style="display:none">
+        <h1 id="test-header">Test begins in 10</h1>
+        <div style="height: 100px">
+            <h1 id="number-display"></h1>
+        </div>
+        <div id="digit-grid">
+            <button class="digit" id="1" disabled=true>1</button>
+            <button class="digit" id="2" disabled=true>2</button>
+            <button class="digit" id="3" disabled=true>3</button>
+            <button class="digit" id="4" disabled=true>4</button>
+            <button class="digit" id="5" disabled=true>5</button>
+            <button class="digit" id="6" disabled=true>6</button>
+            <button class="digit" id="7" disabled=true>7</button>
+            <button class="digit" id="8" disabled=true>8</button>
+            <button class="digit" id="9" disabled=true>9</button>
+            <button class="digit" id="clear" disabled=true>Clear</button>
+            <button class="digit" id="0" disabled=true>0</button>
+            <button class="digit" id="enter" disabled=true>Enter</button>
+        </div>
+    </div>
+
+    <div id="ending" style="display:none">
+        <h1>Test end</h1>
+        <p>The test is now over. Please notify the experimenter. Do not reload or close this tab.</p>
+    </div>
+    <script>
+        function wait(ms) {
+            return new Promise((resolve) => {
+                setTimeout(() => resolve(true), ms);
+            });
+        }
+
+        const MAX_TIME = 3000; // milliseconds
+        const SUMS = 60; // amount
+        const PRETEST_COUNTDOWN = 10; // seconds
+
+        var numbersCalled = [];
+        var correctSums = [];
+        var userSums = [];
+        var timedOutList = [];
+
+        var currSum = 0;
+        var enteredNumber = "";
+
+        function UpdateNumberUI() {
+            document.getElementById("number-display").innerText = enteredNumber || " ";
+        }
+
+        function ResetUI() {
+            enteredNumber = "";
+            UpdateNumberUI();
+        }
+
+        function progress() {
+            return new Promise((resolve) => {
+                // console.log("started sum " + currSum.toString())
+                var currNumber = Math.round(Math.random()*8) + 1; // digits from 1-9
+                numbersCalled.push(currNumber);
+                
+                if (currSum == 0) {
+                    document.getElementById("test-header").innerText = `Sum 1 of ${SUMS}`;
+                } else {
+                    // enable buttons
+                    document.getElementById("digit-grid").childNodes.forEach(digitButton => {     
+                        digitButton.disabled = false;
+                    });
+
+                    document.getElementById("test-header").innerText = `Sum ${currSum.toString()} of ${SUMS}`;
+                    correctSums.push(numbersCalled[currSum-1] + currNumber);
+                }
+
+                // play audio
+                var audio = new Audio(`audios/${currNumber.toString()}.wav`);
+                audio.play()
+                
+                document.getElementById("enter").addEventListener("click", (event) => {
+                    resolve(false);
+                })
+            });
+        }
+
+        addEventListener("load", (event) => {
+            document.getElementById("intro-proceed").addEventListener("click", (event) => {
+                document.getElementById("intro").style.display = "none";
+                document.getElementById("headphones").style.display = "block";
+                setTimeout(() => {document.getElementById("headphones-proceed").disabled = false}, 2000);
+            })
+
+            document.getElementById("headphones-proceed").addEventListener("click", (event) => {
+                document.getElementById("headphones").style.display = "none";
+                document.getElementById("instructions").style.display = "block";
+                setTimeout(() => {document.getElementById("test-begin").disabled = false}, 5000);
+            })
+
+            document.getElementById("test-begin").addEventListener("click", (event) => {
+                // Pre-test procedure
+                document.getElementById("instructions").style.display = "none";
+                document.getElementById("main-test").style.display = "block";
+                var numbers;
+
+                // 10 second timer
+                var timerSeconds = PRETEST_COUNTDOWN;
+                var timer = setInterval(() => {
+                    timerSeconds -= 1;
+                    if (timerSeconds < 1) {
+                        clearInterval(timer);
+                        test();
+                    }
+                    document.getElementById("test-header").innerText = "Test begins in " + timerSeconds.toString();
+                }, 1000);
+            })
+
+            // Detect button presses for digits 0-9 and clear
+            document.getElementById("digit-grid").addEventListener('click', e => {
+                if(!e.target.matches('.digit')) return;
+                var button = e.target.id;
+
+                if (button == "clear") {
+                    enteredNumber = "";
+                } else if (button != "enter") {
+                    enteredNumber += button;
+                }
+                UpdateNumberUI();
+            });
+        })
+
+        async function test() {
+            while (currSum <= SUMS) {
+                var timedOut = await Promise.race([wait(MAX_TIME), progress()]); // wait until either the user clicks enter or timeout
+                // console.log(`timeout: ${timedOut}, ${enteredNumber}`);
+                if (currSum > 0) {
+                    timedOutList.push(timedOut);
+                    userSums.push(parseInt(enteredNumber, 10));
+                }
+                currSum += 1;
+                ResetUI();
+            }
+            // test end
+            document.getElementById("main-test").style.display = "none";
+            document.getElementById("ending").style.display = "block";
+
+            // display stats in console
+            console.log(`Score: ${userSums.reduce((count, val, index) => val === correctSums[index] ? count + 1 : count, 0)} out of ${SUMS}`);
+            console.log(`Called numbers: ${numbersCalled}`);
+            console.log(`Correct sums: ${correctSums}`);
+            console.log(`Subject's inputted sums: ${userSums}`);
+        }
+    </script>
+</body>
+</html>
