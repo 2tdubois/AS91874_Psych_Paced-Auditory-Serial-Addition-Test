@@ -61,7 +61,7 @@
             font-size: 48pt;
             width: 150px;
         }
-        backspace, #enter {
+        #backspace, #enter {
             font-size: 20pt;
         }
     </style>
@@ -221,7 +221,7 @@
 
             document.addEventListener('keydown', (event) => {
                 if (event.key >= '0' && event.key <= '9') { // 0-9
-                    enteredNumber += button;
+                    enteredNumber += event.key;
                 } else if (event.key === "Backspace") { // backspace
                     enteredNumber = enteredNumber.slice(0,-1);
                 }
