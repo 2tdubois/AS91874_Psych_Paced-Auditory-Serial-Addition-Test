@@ -124,6 +124,7 @@
         const SUMS = 60; // amount
         const PRETEST_COUNTDOWN = 10; // seconds
 
+        var inputEnabled = false;
         var numbersCalled = [];
         var correctSums = [];
         var userSums = [];
@@ -150,7 +151,8 @@
                 if (currSum == 0) {
                     document.getElementById("test-header").innerText = `Sum 1 of ${SUMS}`;
                 } else {
-                    // enable buttons
+                    // enable input
+                    inputEnabled = true;
                     document.getElementById("digit-grid").childNodes.forEach(digitButton => {     
                         digitButton.disabled = false;
                     });
@@ -168,7 +170,7 @@
                 })
 
                 document.addEventListener('keydown', (event) => { // detect enter
-                    if (event.key === 'Enter') {
+                    if (event.key === 'Enter' && inputEnabled) {
                         resolve(false);
                     }
                 })
@@ -220,9 +222,9 @@
             });
 
             document.addEventListener('keydown', (event) => {
-                if (event.key >= '0' && event.key <= '9') { // 0-9
+                if (event.key >= '0' && event.key <= '9' && inputEnabled) { // 0-9
                     enteredNumber += event.key;
-                } else if (event.key === "Backspace") { // backspace
+                } else if (event.key === "Backspace" && inputEnabled) { // backspace
                     enteredNumber = enteredNumber.slice(0,-1);
                 }
                 UpdateNumberUI();
