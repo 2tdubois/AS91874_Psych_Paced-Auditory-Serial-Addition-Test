@@ -61,8 +61,8 @@
             font-size: 48pt;
             width: 150px;
         }
-        #clear, #enter {
-            font-size: 24pt;
+        backspace, #enter {
+            font-size: 20pt;
         }
     </style>
 </head>
@@ -83,7 +83,7 @@
 
     <div id="instructions" style="display:none">
         <h1>Instructions</h1>
-        <p>You will be listening to 1-digit numbers. Under a 3-second time limit, you will be entering the sum of the number you hear and the number you heard before it. For example, if you heard the numbers 9, 7, 3, and 5, you would enter 16 after hearing 7, you would enter 10 after hearing 3, and you would enter 8 after hearing 5. You will input these numbers on the webpage, along with pressing a button to submit your answer. If you do not answer in time, the test will skip to the next number. Confirm first with the experimenter that you understand the task.</p>
+        <p>You will be listening to 1-digit numbers. Under a 3-second time limit, you will be entering the sum of the number you hear and the number you heard before it. For example, if you heard the numbers 9, 7, 3, and 5, you would enter 16 after hearing 7, you would enter 10 after hearing 3, and you would enter 8 after hearing 5. You will input these numbers on the webpage, either by pressing keys on your keyboard (0-9, Backspace and Enter) or by pressing buttons on the page. If you do not answer in time, the test will skip to the next number. Confirm first with the experimenter that you understand the task.</p>
         <br>
         <button style="margin-top:25px;" id="test-begin" disabled=true>Confirm, begin test</button>
     </div>
@@ -103,7 +103,7 @@
             <button class="digit" id="7" disabled=true>7</button>
             <button class="digit" id="8" disabled=true>8</button>
             <button class="digit" id="9" disabled=true>9</button>
-            <button class="digit" id="clear" disabled=true>Clear</button>
+            <button class="digit" id="backspace" disabled=true>Backspace</button>
             <button class="digit" id="0" disabled=true>0</button>
             <button class="digit" id="enter" disabled=true>Enter</button>
         </div>
@@ -163,8 +163,14 @@
                 var audio = new Audio(`audios/${currNumber.toString()}.wav`);
                 audio.play()
                 
-                document.getElementById("enter").addEventListener("click", (event) => {
+                document.getElementById("enter").addEventListener("click", (event) => { // detect enter
                     resolve(false);
+                })
+
+                document.addEventListener('keydown', (event) => { // detect enter
+                    if (event.key === 'Enter') {
+                        resolve(false);
+                    }
                 })
             });
         }
@@ -205,14 +211,21 @@
                 if(!e.target.matches('.digit')) return;
                 var button = e.target.id;
 
-                if (button == "clear") {
-                    enteredNumber = "";
-                } else if (button != "enter") {
+                if (button == "backspace") { // backspace
+                    enteredNumber = enteredNumber.slice(0,-1);
+                } else if (button != "enter") { // 0-9
                     enteredNumber += button;
                 }
                 UpdateNumberUI();
             });
-        })
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key >= '0' && event.key <= '9') { // 0-9
+                    enteredNumber += button;
+                } else if (event.key === "Backspace") { // backspace
+                    enteredNumber = enteredNumber.slice(0,-1);
+                }
+            })
 
         async function test() {
             while (currSum <= SUMS) {
