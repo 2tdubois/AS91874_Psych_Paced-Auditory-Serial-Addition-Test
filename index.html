@@ -59,7 +59,7 @@
         }
         .digit {
             font-size: 48pt;
-            width: 150px;
+            width: 200px;
         }
         #backspace, #enter {
             font-size: 20pt;
@@ -225,6 +225,7 @@
                 } else if (event.key === "Backspace") { // backspace
                     enteredNumber = enteredNumber.slice(0,-1);
                 }
+                UpdateNumberUI();
             })
         })
 
